@@ -60,10 +60,10 @@ def check_m_step():
     theta = model.update_theta(X, R)
     pi = model.update_pi(R)
 
-    
+
 
     opt = variational_objective(model, X, R, pi, theta)
-    
+
     ok = True
     for i in range(20):
         new_theta = perturb_theta(theta)
@@ -95,7 +95,7 @@ def check_e_step():
     objective with respect to the responsibilities. Note that this does not
     fully check your solution to Part 2, since it only applies to fully observed
     images."""
-    
+
     np.random.seed(0)
 
     NUM_IMAGES = 100
@@ -107,7 +107,7 @@ def check_e_step():
     # reduce the number of observations so that the posterior is less peaked
     X = X[:, ::50]
     model.params.theta = model.params.theta[:, ::50]
-    
+
     R = model.compute_posterior(X)
 
     opt = variational_objective(model, X, R, model.params.pi, model.params.theta)
@@ -128,4 +128,5 @@ def check_e_step():
 
 
 
-
+if __name__ == '__main__':
+    check_m_step()

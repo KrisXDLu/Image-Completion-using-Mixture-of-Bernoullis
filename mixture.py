@@ -48,7 +48,7 @@ class Params(object):
         - theta: The Bernoulli parameters for each pixel in each mixture component. This is
             a K x D matrix, where rows correspond to mixture components and columns correspond
             to pixels. """
-    
+
     def __init__(self, pi, theta):
         self.pi = pi
         self.theta = theta
@@ -65,7 +65,7 @@ class Prior(object):
         - a_pixels and b_pixels: The scalar-valued parameters for the beta prior over the entries of
             theta. I.e., the entries of theta are assumed to be drawn i.i.d. from the distribution
             Beta(a_pixels, b_pixels). """
-    
+
     def __init__(self, a_mix, a_pixels, b_pixels):
         self.a_mix = a_mix
         self.a_pixels = a_pixels
@@ -86,7 +86,7 @@ class Model(object):
     """A class implementing the mixture of Bernoullis model. The fields are:
         - prior: an Prior instance
         - params: a Params instance"""
-    
+
     def __init__(self, prior, params):
         self.prior = prior
         self.params = params
@@ -100,7 +100,7 @@ class Model(object):
         """Compute the expected joint log probability, where the expectation is with respect to
         the responsibilities R. This is the objective function being maximized in the M-step.
         It's useful for verifying the optimality conditions in the M-step."""
-        
+
         total = 0.
 
         # Prior over mixing proportions
@@ -111,7 +111,7 @@ class Model(object):
 
         # Probability of assignments
         total += np.sum(R * np.log(self.params.pi))
-        
+
         # Matrix of log probabilities of observations conditioned on z
         # The (i, k) entry is p(x^(i) | z^(i) = k)
         log_p_x_given_z = np.dot(X, np.log(self.params.theta).T) + \
@@ -125,7 +125,7 @@ class Model(object):
     def log_likelihood(self, X):
         """Compute the log-likelihood of the observed data, i.e. the log probability with the
         latent variables marginalized out."""
-        
+
         # Matrix of log probabilities of observations conditioned on z
         # The (i, k) entry is p(x^(i) | z^(i) = k)
         log_p_x_given_z = np.dot(X, np.log(self.params.theta).T) + \
@@ -144,11 +144,14 @@ class Model(object):
         implement this in terms of NumPy matrix and vector operations, rather than a for loop."""
 
         ######################## Your code here #########################
-        
+        return np.divide(np.sum(R.T, axis=1)
+                            + self.prior.a_mix - 1,
+                            R.shape[1] * (self.prior.a_mix - 1) + np.sum(R));
+
 
 
         #################################################################
-        
+
     def update_theta(self, X, R):
         """Compute the update for the Bernoulli parameters in the M-step of the E-M algorithm.
         You should derive the optimal value of theta (the one which maximizes the expected log
@@ -156,7 +159,9 @@ class Model(object):
         terms of NumPy matrix and vector operations, rather than a for loop."""
 
         ######################## Your code here #########################
-        
+        nom = np.dot(R.T, X) + self.prior.a_pixels - 1
+        denom = np.dot(R.T, X) + (self.prior.a_pixels + self.prior.b_pixels - 2 + np.dot(R.T, 1 - X))
+        return np.divide(nom,denom);
 
 
         #################################################################
@@ -175,16 +180,18 @@ class Model(object):
         Hint: the solution is a small modification of the computation of log_p_z_x in
         Model.log_likelihood.
         """
-        
+
         if M is None:
             M = np.ones(X.shape, dtype=int)
 
         ######################## Your code here #########################
-        
+        log_p_x_given_z = np.dot(M*X, np.log(self.params.theta).T) + \
+                          np.dot(1. - M*X, np.log(1. - self.params.theta).T)
+        log_p_z_x = log_p_x_given_z + np.log(self.params.pi)
 
 
         #################################################################
-            
+
         # subtract the max of each row to avoid numerical instability
         log_p_z_x_shifted = log_p_z_x - log_p_z_x.max(1).reshape((-1, 1))
 
@@ -204,11 +211,11 @@ class Model(object):
         a call to self.compute_posterior."""
 
         ######################## Your code here #########################
-        
+        return np.dot(self.params.theta, self.compute_posterior(X))
 
 
         #################################################################
-        
+
     def visualize_components(self, title=None):
         """Visualize the learned components. Each of the images shows the Bernoulli parameters
         (probability of the pixel being 1) for one of the mixture components."""
@@ -240,12 +247,12 @@ class Model(object):
             title = 'Model predictions'
         pylab.title(title)
         pylab.draw()
-        
+
 
 def train_from_labels(prior=None, show=True):
     """Fit the mixture model using the labeled MNIST data. There are 10 mixture components,
     one corresponding to each of the digit classes."""
-    
+
     X = util.read_mnist_images(TRAIN_IMAGES_FILE)
     y = util.read_mnist_labels(TRAIN_LABELS_FILE)
     X_test = util.read_mnist_images(TEST_IMAGES_FILE)
@@ -275,11 +282,11 @@ def train_from_labels(prior=None, show=True):
         print 'Test log-likelihood:', model.log_likelihood(X_test) / X_test.shape[0]
 
     return model
-    
-        
+
+
 def train_with_em(num_components=100, num_steps=50, prior=None, draw_every=1):
     """Fit the mixture model in an unsupervised fashion using E-M."""
-    
+
     X = util.read_mnist_images(TRAIN_IMAGES_FILE)
     X_test = util.read_mnist_images(TEST_IMAGES_FILE)
     num_data, num_pixels = X.shape
@@ -325,7 +332,7 @@ def train_with_em(num_components=100, num_steps=50, prior=None, draw_every=1):
 
 def print_log_probs_by_digit_class(model):
     """Print the average log-probability of images in each digit class."""
-    
+
     X = util.read_mnist_images(TRAIN_IMAGES_FILE)
     y = util.read_mnist_labels(TRAIN_LABELS_FILE)
     X_test = util.read_mnist_images(TEST_IMAGES_FILE)
@@ -379,7 +386,7 @@ def print_part_2_values():
     model = train_from_labels(show=False)
 
     X = util.read_mnist_images(TRAIN_IMAGES_FILE)
-    
+
     M = np.zeros(X.shape, dtype=int)
     M[:, ::50] = 1
 
@@ -391,11 +398,5 @@ def print_part_2_values():
     print 'P[0, 183]', P[0, 183]
     print 'P[2, 628]', P[2, 628]
 
-    
-    
-    
-
-    
-
-
-
+if __name__ == '__main__':
+    print_part_2_values();
