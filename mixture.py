@@ -144,9 +144,7 @@ class Model(object):
         implement this in terms of NumPy matrix and vector operations, rather than a for loop."""
 
         ######################## Your code here #########################
-        return np.divide(np.sum(R.T, axis=1)
-                            + self.prior.a_mix - 1,
-                            R.shape[1] * (self.prior.a_mix - 1) + np.sum(R));
+        return np.divide(np.sum(R.T, axis=1) + self.prior.a_mix - 1, R.shape[1] * (self.prior.a_mix - 1) + np.sum(R));
 
 
 
@@ -211,7 +209,7 @@ class Model(object):
         a call to self.compute_posterior."""
 
         ######################## Your code here #########################
-        return np.dot(self.compute_posterior(X), self.params.theta)
+        return np.dot(self.compute_posterior(X, M), self.params.theta)
 
 
         #################################################################
