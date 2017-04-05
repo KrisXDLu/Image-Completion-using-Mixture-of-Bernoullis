@@ -185,8 +185,8 @@ class Model(object):
             M = np.ones(X.shape, dtype=int)
 
         ######################## Your code here #########################
-        log_p_x_given_z = np.dot(M*X, np.log(self.params.theta).T) + \
-                          np.dot(1. - M*X, np.log(1. - self.params.theta).T)
+        log_p_x_given_z = np.dot(M * X, np.log(self.params.theta).T) + \
+                          np.dot(M * (1. - X), np.log(1. - self.params.theta).T)
         log_p_z_x = log_p_x_given_z + np.log(self.params.pi)
 
 
@@ -211,7 +211,7 @@ class Model(object):
         a call to self.compute_posterior."""
 
         ######################## Your code here #########################
-        return np.dot(self.params.theta, self.compute_posterior(X))
+        return np.dot(self.compute_posterior(X), self.params.theta)
 
 
         #################################################################
